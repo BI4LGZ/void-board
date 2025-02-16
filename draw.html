@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>虚空白板|画板</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <link rel="stylesheet" href="/statics/css/draw.css" />
+    <link rel="shortcut icon" href="/statics/assets/icon.svg" type="image/x-icon" />
+  </head>
+
+  <body oncontextmenu="return false;">
+    <canvas id="drawCanvas"></canvas>
+
+    <div id="controls">
+      <div style="display: flex">
+        <div class="color-btn" id="black"></div>
+        <div class="color-btn" id="blue"></div>
+        <div class="color-btn" id="red"></div>
+      </div>
+      <button class="btn" id="clear">清空画布</button>
+    </div>
+
+    <a href="/" class="back-button">返回</a>
+
+    <script src="/statics/js/draw.js"></script>
+  </body>
+</html>

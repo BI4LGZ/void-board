@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <title>虚空白板|首页</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <link rel="stylesheet" href="/statics/css/index.css" />
+    <link rel="shortcut icon" href="/statics/assets/icon.svg" type="image/x-icon" />
+  </head>
+
+  <body oncontextmenu="return false;">
+    <div class="container">
+      <div class="header" id="systemTime"></div>
+      <div class="card">
+        <table>
+          <tr>
+            <th>节次</th>
+          </tr>
+        </table>
+          <div class="button-container">
+            <input
+              type="text"
+              id="searchInput"
+              autocomplete="off"
+              placeholder="搜索…"
+            />
+            <button onclick="searchBing()" class="button">必应搜索</button>
+          </div>
+      </div>
+    </div>
+
+    <div class="timer-container">
+      <div class="timer">
+        <span id="timerDisplay" style="color: red">00:00</span>
+        <div class="timer-controls">
+          <div class="time-adjustment">
+            <button id="increaseMinute" class="adjust-button">+</button>
+            <button id="decreaseMinute" class="adjust-button">-</button>
+            <span class="label">分</span>
+          </div>
+          <div class="time-adjustment">
+            <button id="increaseSecond" class="adjust-button">+</button>
+            <button id="decreaseSecond" class="adjust-button">-</button>
+            <span class="label">秒</span>
+          </div>
+          <div class="timer-actions">
+            <button id="startPauseButton" class="action-button">开始</button>
+            <button id="resetButton" class="action-button">重置</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button onclick="scrollToTop()" class="back-button">
+      <img src="/statics/assets/toTop.svg" alt="返回顶部" class="back-icon" />
+    </button>
+
+    <script src="/statics/js/index.js"></script>
+  </body>
+</html>
