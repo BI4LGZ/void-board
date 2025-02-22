@@ -7,11 +7,20 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <link rel="stylesheet" href="/statics/css/name.css" />
-    <link rel="shortcut icon" href="/statics/assets/icon.svg" type="image/x-icon" />
+    <link
+      rel="shortcut icon"
+      href="/statics/assets/icon.svg"
+      type="image/x-icon"
+    />
   </head>
 
   <body oncontextmenu="return false;">
-    <div class="container">
+    <div id="loading" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">正在加载名单数据...</div>
+    </div>
+
+    <div class="container" style="display: none">
       <div class="card">
         <p class="result" id="result">点击按钮开始</p>
         <button class="button" id="draw">抽取姓名</button>
@@ -19,5 +28,25 @@
       <a href="/" class="back-button">返回</a>
     </div>
     <script src="/statics/js/name.js"></script>
+    <script>
+      (async function () {
+        try {
+          document.getElementById("loading").style.display = "flex";
+
+          await Promise.race([
+            fetchNames(),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("加载超时")), 10000)
+            ),
+          ]);
+
+          document.getElementById("loading").style.display = "none";
+          document.querySelector(".container").style.display = "flex";
+        } catch (error) {
+          console.error("初始化失败:", error);
+          document.getElementById("draw").disabled = true;
+        }
+      })();
+    </script>
   </body>
 </html>

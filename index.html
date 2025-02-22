@@ -8,11 +8,20 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <link rel="stylesheet" href="/statics/css/index.css" />
-    <link rel="shortcut icon" href="/statics/assets/icon.svg" type="image/x-icon" />
+    <link
+      rel="shortcut icon"
+      href="/statics/assets/icon.svg"
+      type="image/x-icon"
+    />
   </head>
 
   <body oncontextmenu="return false;">
-    <div class="container">
+    <div id="loading" class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">正在加载数据...</div>
+    </div>
+
+    <div class="container" style="visibility: hidden">
       <div class="header" id="systemTime"></div>
       <div class="card">
         <table>
@@ -20,21 +29,28 @@
             <th>节次</th>
           </tr>
         </table>
-          <div class="button-container">
-            <input
-              type="text"
-              id="searchInput"
-              autocomplete="off"
-              placeholder="搜索…"
-            />
-            <button onclick="searchBing()" class="button">必应搜索</button>
-          </div>
+        <div class="button-container">
+          <input
+            type="text"
+            id="searchInput"
+            autocomplete="off"
+            placeholder="搜索…"
+          />
+          <button onclick="searchBing()" class="button">必应搜索</button>
+        </div>
       </div>
     </div>
 
     <div class="timer-container">
       <div class="timer">
         <span id="timerDisplay" style="color: red">00:00</span>
+        <div class="quick-timers">
+          <button class="quick-time" onclick="setQuickTime(0,30)">30秒</button>
+          <button class="quick-time" onclick="setQuickTime(1)">1分钟</button>
+          <button class="quick-time" onclick="setQuickTime(5)">5分钟</button>
+          <button class="quick-time" onclick="setQuickTime(30)">30分钟</button>
+          <button class="quick-time" onclick="setQuickTime(60)">1小时</button>
+        </div>
         <div class="timer-controls">
           <div class="time-adjustment">
             <button id="increaseMinute" class="adjust-button">+</button>
@@ -59,5 +75,44 @@
     </button>
 
     <script src="/statics/js/index.js"></script>
+    <script>
+      (async function () {
+        try {
+          const loadingElement = document.getElementById("loading");
+          const containerElement = document.querySelector(".container");
+
+          loadingElement.style.visibility = "visible";
+          containerElement.style.visibility = "hidden";
+
+          await Promise.race([
+            initializeApp(),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("加载超时")), 10000)
+            ),
+          ]);
+
+          loadingElement.classList.add("hidden");
+
+          loadingElement.addEventListener(
+            "transitionend",
+            () => {
+              loadingElement.style.visibility = "hidden";
+              containerElement.style.visibility = "visible";
+            },
+            { once: true }
+          );
+        } catch (error) {
+          console.error("初始化失败:", error);
+          loadingElement.classList.add("hidden");
+          loadingElement.addEventListener(
+            "transitionend",
+            () => {
+              loadingElement.style.visibility = "hidden";
+            },
+            { once: true }
+          );
+        }
+      })();
+    </script>
   </body>
 </html>

@@ -3,7 +3,7 @@ let seconds = 0;
 let timer;
 let timerRunning = false;
 let countdownEnded = false;
-const audioElement = new Audio("/statics/assets/ring.m4a");
+const audioElement = new Audio("/statics/assets/ring.wav");
 let touchStartY = 0;
 let touchMoveY = 0;
 
@@ -28,23 +28,26 @@ function updateSystemTime() {
 setInterval(updateSystemTime, 1000);
 updateSystemTime();
 
-function loadTimetable() {
-  fetch("/statics/data/timetable.json")
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("网络响应不正常");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      const table = document.querySelector("table");
+async function loadTimetable() {
+  try {
+    const response = await fetch("/statics/data/timetable.json");
+    if (!response.ok) throw new Error("网络响应不正常");
+    const data = await response.json();
 
+    return new Promise((resolve) => {
+      const table = document.querySelector("table");
       const headerRow = table.querySelector("tr");
+      while (headerRow.children.length > 1) {
+        headerRow.removeChild(headerRow.lastChild);
+      }
       data.days.forEach((day) => {
         const th = document.createElement("th");
         th.textContent = day;
         headerRow.appendChild(th);
       });
+
+      const rows = Array.from(table.querySelectorAll("tr")).slice(1);
+      rows.forEach((row) => table.removeChild(row));
 
       data.sections.forEach((section) => {
         const row = document.createElement("tr");
@@ -62,25 +65,26 @@ function loadTimetable() {
       });
 
       highlightCurrentDay();
-    })
-    .catch((error) => {
-      console.error("加载课程表时出错:", error);
-      alert(
-        "无法加载课程表，请检查网络或联系网站管理员\n邮箱：oscarzhu@aliyun.com"
-      );
+      resolve();
     });
+  } catch (error) {
+    console.error("加载课程表时出错:", error);
+    throw error;
+  }
 }
 
-function loadButtons() {
-  fetch("/statics/data/buttons.json")
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("网络响应不正常");
-      }
-      return response.json();
-    })
-    .then((data) => {
+async function loadButtons() {
+  try {
+    const response = await fetch("/statics/data/buttons.json");
+    if (!response.ok) throw new Error("网络响应不正常");
+    const data = await response.json();
+
+    return new Promise((resolve) => {
       const buttonContainer = document.querySelector(".button-container");
+      const dynamicButtons = Array.from(
+        buttonContainer.querySelectorAll("a.button")
+      );
+      dynamicButtons.forEach((button) => button.remove());
 
       data.buttons.forEach((buttonData) => {
         const button = document.createElement("a");
@@ -99,15 +103,24 @@ function loadButtons() {
           button.target = buttonData.target;
         }
 
-        buttonContainer.insertBefore(button, buttonContainer.firstChild);
+        const searchInput = buttonContainer.querySelector("input");
+        buttonContainer.insertBefore(button, searchInput);
       });
-    })
-    .catch((error) => {
-      console.error("加载快捷按钮数据时出错:", error);
-      alert(
-        "无法加载快捷按钮数据，请检查网络或联系网站管理员。\n邮箱：oscarzhu@aliyun.com"
-      );
+      resolve();
     });
+  } catch (error) {
+    console.error("加载快捷按钮数据时出错:", error);
+    throw error;
+  }
+}
+
+async function initializeApp() {
+  try {
+    await Promise.all([loadTimetable(), loadButtons()]);
+    loadTimerData();
+  } catch (error) {
+    throw error;
+  }
 }
 
 function highlightCurrentDay() {
@@ -130,7 +143,7 @@ function searchBing() {
   let bingUrl =
     "https://www.bing.com/search?q=" + encodeURIComponent(searchInput);
   if (searchInput !== "") {
-    window.location.href = bingUrl;
+    window.open(bingUrl, "_blank");
   }
 }
 
@@ -173,6 +186,17 @@ function updateTimerDisplay() {
   }
 }
 
+function setQuickTime(min, sec = 0) {
+  minutes = min;
+  seconds = sec;
+  countdownEnded = false;
+  updateTimerDisplay();
+  saveTimerData();
+  if (timerRunning) {
+    pauseTimer();
+  }
+}
+
 function decreaseMinute() {
   if (minutes > 0) {
     minutes--;
@@ -205,6 +229,12 @@ function increaseSecond() {
 function startTimer() {
   if (!timerRunning) {
     timer = setInterval(() => {
+      const currentTotal = minutes * 60 + seconds;
+
+      if (currentTotal === 4) {
+        audioElement.play();
+      }
+
       if (seconds > 0) {
         seconds--;
       } else {
@@ -216,7 +246,6 @@ function startTimer() {
           timerRunning = false;
           countdownEnded = true;
           document.getElementById("startPauseButton").textContent = "开始";
-          audioElement.play();
         }
       }
       saveTimerData();
@@ -231,6 +260,7 @@ function startTimer() {
 }
 
 function pauseTimer() {
+  if (minutes * 60 + seconds <= 4) return;
   clearInterval(timer);
   timerRunning = false;
   saveTimerData();
@@ -250,6 +280,9 @@ function stopTimer() {
 }
 
 function toggleStartPause() {
+  const totalSeconds = minutes * 60 + seconds;
+  if (totalSeconds <= 4) return;
+
   if (timerRunning) {
     pauseTimer();
   } else {
@@ -288,8 +321,4 @@ function scrollToTop() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadTimetable();
-  loadButtons();
-  loadTimerData();
-});
+initializeApp();
