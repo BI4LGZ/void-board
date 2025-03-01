@@ -1,0 +1,162 @@
+{% extends "base.html" %} {% block content %}
+<div class="card">
+  <h2>课程表管理</h2>
+  <form method="POST">
+    <div class="control-buttons">
+      <button type="button" class="button" onclick="addDay()">添加日期</button>
+      <button type="button" class="button" onclick="addSection()">
+        添加节次
+      </button>
+      <button type="submit" class="button">保存配置</button>
+    </div>
+
+    <table class="dynamic-table" id="timetable">
+      <thead>
+        <tr>
+          <th>节次/日期</th>
+          {% for day in data.days %}
+          <th>
+            <input
+              type="text"
+              name="days[]"
+              value="{{ day }}"
+              class="form-input"
+              required
+            />
+            <button
+              type="button"
+              class="button small"
+              onclick="deleteDay(this)"
+            >
+              ×
+            </button>
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for section in data.sections %} {% set section_index = loop.index0 %}
+        <tr>
+          <td>
+            <input
+              type="text"
+              name="section_name[]"
+              value="{{ section.name }}"
+              class="form-input"
+              required
+            />
+            <button
+              type="button"
+              class="button small"
+              onclick="deleteSection(this)"
+            >
+              ×
+            </button>
+          </td>
+          {% for course in section.courses %}
+          <td>
+            <input
+              type="text"
+              name="courses[{{ section_index }}][{{ loop.index0 }}]"
+              value="{{ course }}"
+              class="form-input"
+            />
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </form>
+</div>
+
+<script>
+  function addDay() {
+    const headerRow = document.querySelector("thead tr");
+    const dayIndex = headerRow.children.length - 1;
+
+    const newDayCell = document.createElement("th");
+    newDayCell.innerHTML = `
+        <input type="text" name="courses[${sectionIndex}][${dayIndex}]" value="新日期" class="form-input" required>
+        <button type="button" class="button small" onclick="deleteDay(this)">×</button>
+    `;
+    headerRow.appendChild(newDayCell);
+
+    document.querySelectorAll("tbody tr").forEach((row, sectionIndex) => {
+      const newCell = document.createElement("td");
+      newCell.innerHTML = `
+    <input type="text" class="form-input" 
+           name="courses[${sectionIndex}][${dayIndex}]">
+    `;
+      row.appendChild(newCell);
+    });
+  }
+
+  function addSection() {
+    const tbody = document.querySelector("tbody");
+    const sectionIndex = tbody.rows.length;
+    const dayCount = document.querySelectorAll("thead th").length - 1;
+
+    const newRow = document.createElement("tr");
+    newRow.innerHTML = `
+        <td>
+            <input type="text" name="section_name[]" value="新节次" class="form-input" required>
+            <button type="button" class="button small" onclick="deleteSection(this)">×</button>
+        </td>
+        ${Array.from(
+          { length: dayCount },
+          (_, dayIndex) => `
+            <td>
+        <input type="text" class="form-input" 
+               name="courses[${sectionIndex}][${dayIndex}]">
+        </td>
+        `
+        ).join("")}
+    `;
+    tbody.appendChild(newRow);
+  }
+
+  function deleteDay(button) {
+    const headerRow = button.closest("tr");
+    const dayIndex =
+      Array.from(headerRow.children).indexOf(button.parentElement) - 1;
+
+    button.parentElement.remove();
+
+    document.querySelectorAll("tbody tr").forEach((row) => {
+      row.deleteCell(dayIndex + 1);
+    });
+
+    document.querySelectorAll(`input[name^="courses["]`).forEach((input) => {
+      const nameParts = input.name.match(/courses\[(\d+)\]\[(\d+)\]/);
+      if (nameParts) {
+        const [_, sectionIndex, originalDayIndex] = nameParts;
+        if (parseInt(originalDayIndex) > dayIndex) {
+          input.name = `courses[${sectionIndex}][${
+            parseInt(originalDayIndex) - 1
+          }]`;
+        }
+      }
+    });
+  }
+
+  function deleteSection(button) {
+    const row = button.closest("tr");
+    const sectionIndex = row.rowIndex;
+
+    row.remove();
+
+    document.querySelectorAll(`input[name^="courses["]`).forEach((input) => {
+      const nameParts = input.name.match(/courses\[(\d+)\]\[(\d+)\]/);
+      if (nameParts) {
+        const [_, originalSectionIndex, dayIndex] = nameParts;
+        if (parseInt(originalSectionIndex) > sectionIndex) {
+          input.name = `courses[${
+            parseInt(originalSectionIndex) - 1
+          }][${dayIndex}]`;
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

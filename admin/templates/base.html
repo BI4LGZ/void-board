@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>虚空白板|管理后台</title>
+    <link rel="shortcut icon" href="/static/icon.svg" type="image/x-icon" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('admin.static', filename='css/admin.css') }}"
+    />
+  </head>
+  <body>
+    <header class="admin-header">
+      <h1>虚空白板管理后台</h1>
+      <nav>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('admin.dashboard') }}">仪表盘</a>
+        <a href="{{ url_for('admin.timetable') }}">课程表</a>
+        <a href="{{ url_for('admin.buttons') }}">快捷按钮</a>
+        <a href="{{ url_for('admin.names') }}">学生名单</a>
+        <a href="{{ url_for('admin.logout') }}">退出</a>
+        {% endif %}
+      </nav>
+    </header>
+    <main class="admin-main">{% block content %}{% endblock %}</main>
+  </body>
+</html>

@@ -1,0 +1,91 @@
+{% extends "base.html" %} {% block content %}
+<div class="card">
+  <h2>学生名单管理</h2>
+  <form method="POST">
+    <div class="form-group">
+      <div class="control-buttons">
+        <button type="button" class="button" onclick="addRow()">
+          + 添加行
+        </button>
+      </div>
+      <table class="dynamic-table" id="nameTable">
+        <thead>
+          <tr>
+            <th>序号</th>
+            <th>学生姓名</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for name in names %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td>
+              <input
+                type="text"
+                name="table_names[]"
+                value="{{ name }}"
+                class="form-input"
+                required
+              />
+            </td>
+            <td>
+              <button
+                type="button"
+                class="button danger small"
+                onclick="deleteRow(this)"
+              >
+                删除
+              </button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="control-buttons">
+      <button type="submit" class="button">保存名单</button>
+    </div>
+  </form>
+</div>
+
+<script>
+    let rowCount = {{ names|length }};
+
+    function addRow() {
+        rowCount++;
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+            <td>${rowCount}</td>
+            <td>
+                <input type="text" name="table_names[]" class="form-input" required>
+            </td>
+            <td>
+                <button type="button" class="button danger small"
+                        onclick="deleteRow(this)">删除</button>
+            </td>
+        `;
+        document.querySelector('#nameTable tbody').appendChild(newRow);
+    }
+
+    function deleteRow(button) {
+        const row = button.closest('tr');
+        row.remove();
+
+        Array.from(document.querySelectorAll('#nameTable tbody tr td:first-child'))
+             .forEach((td, index) => td.textContent = index + 1);
+        rowCount--;
+    }
+
+      document.querySelector('form').addEventListener('submit', function(e) {
+          const emptyInputs = Array.from(document.querySelectorAll('input[name="table_names[]"]'))
+                              .filter(input => !input.value.trim());
+
+          if(emptyInputs.length > 0) {
+              e.preventDefault();
+              alert('请填写所有学生姓名');
+              emptyInputs[0].focus();
+          }
+  });
+</script>
+{% endblock %}

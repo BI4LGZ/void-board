@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>快捷按钮管理</h2>
+    <form method="POST">
+        <table class="dynamic-table">
+            <thead>
+                <tr>
+                    <th>按钮文字</th>
+                    <th>动作类型</th>
+                    <th>链接/代码</th>
+                    <th>打开方式</th>
+                    <th>样式类</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for btn in buttons %}
+                <tr>
+                    <td>
+                        <input type="text" name="title[]" 
+                               value="{{ btn.text }}" class="form-input" required>
+                    </td>
+                    <td>
+                        <select name="action_type[]" class="form-input" 
+                                onchange="toggleActionType(this)">
+                            <option value="link" {% if btn.href %}selected{% endif %}>链接</option>
+                            <option value="code" {% if btn.onclick %}selected{% endif %}>代码</option>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="action-input">
+                            {% if btn.href %}
+                            <input type="text" name="action_value[]" 
+                                    value="{{ btn.href }}" class="form-input" 
+                                    pattern="^(https?://|/.*)$" 
+                                    title="支持格式：http(s)://开头的绝对路径 或 / 开头的相对路径">
+                            {% else %}
+                            <input type="text" name="action_value[]" 
+                                   value="{{ btn.onclick }}" class="form-input"
+                                   placeholder="JavaScript代码">
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <select name="target[]" class="form-input">
+                            <option value="_self" {% if not btn.target %}selected{% endif %}>当前页面</option>
+                            <option value="_blank" {% if btn.target == '_blank' %}selected{% endif %}>新标签页</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="class[]" 
+                               value="{{ btn.class }}" class="form-input" 
+                               required>
+                    </td>
+                    <td>
+                        <button type="button" class="button danger" 
+                                onclick="deleteRow(this)">删除</button>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr id="newButtonRow">
+                    <td colspan="6">
+                        <button type="button" class="button" 
+                                onclick="addNewButton()">添加新按钮</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="control-buttons">
+            <button type="submit" class="button">保存配置</button>
+        </div>
+    </form>
+</div>
+
+<script>
+function addNewButton() {
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+        <td>
+            <input type="text" name="title[]" class="form-input" required>
+        </td>
+        <td>
+            <select name="action_type[]" class="form-input" onchange="toggleActionType(this)">
+                <option value="link">链接</option>
+                <option value="code">代码</option>
+            </select>
+        </td>
+        <td>
+            <div class="action-input">
+                <input type="text" name="action_value[]" class="form-input" 
+                       pattern="^(https?://|/.*)$" 
+                       title="请输入有效URL或相对路径">
+            </div>
+        </td>
+        <td>
+            <select name="target[]" class="form-input">
+                <option value="_self">当前页面</option>
+                <option value="_blank">新标签页</option>
+            </select>
+        </td>
+        <td>
+            <input type="text" name="class[]" value="button" 
+                   class="form-input" required>
+        </td>
+        <td>
+            <button type="button" class="button danger" 
+                    onclick="deleteRow(this)">删除</button>
+        </td>
+    `;
+    document.querySelector('tbody').insertBefore(newRow, document.getElementById('newButtonRow'));
+}
+
+function toggleActionType(select) {
+    const input = select.parentNode.parentNode.querySelector('.action-input input');
+    const isCode = select.value === 'code';
+    
+    input.removeAttribute('type');
+    input.removeAttribute('pattern');
+    input.removeAttribute('title');
+    
+    if(isCode) {
+        input.placeholder = "JavaScript代码";
+        input.type = "text";
+    } else {
+        input.type = "text";
+        input.pattern = "^(https?://|/.*)$";
+        input.title = "请输入有效URL或相对路径";
+        input.placeholder = "";
+    }
+}
+
+function deleteRow(button) {
+    button.closest('tr').remove();
+}
+
+document.querySelectorAll('select[name="action_type[]"]').forEach(toggleActionType);
+</script>
+{% endblock %}
