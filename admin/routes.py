@@ -127,17 +127,35 @@ def parse_names(input_text):
 @login_required
 def names():
     if request.method == "POST":
+        original_names = load_json_data(Config.DATA_FILES["names"]).get("names", [])
 
-        table_names = request.form.getlist("table_names[]")
-        text_names = parse_names(request.form.get("text_names", ""))
+        submitted_data = {}
+        for key in request.form:
+            if key.startswith("table_names["):
+                index = int(key[12:-1])
+                value = request.form[key].strip()
+                if value:
+                    submitted_data[index] = value
 
-        merged_names = list({n.strip() for n in table_names + text_names if n.strip()})
+        deleted_indexes = [int(i) for i in request.form.getlist("deleted_indexes")]
 
-        save_json_data(Config.DATA_FILES["names"], {"names": merged_names})
+        final_names = []
+        max_index = max(submitted_data.keys(), default=-1)
+
+        for idx in range(len(original_names)):
+            if idx in deleted_indexes:
+                continue
+            final_names.append(submitted_data.get(idx, original_names[idx]))
+
+        for idx in sorted(submitted_data.keys()):
+            if idx >= len(original_names):
+                final_names.append(submitted_data[idx])
+
+        save_json_data(Config.DATA_FILES["names"], {"names": final_names})
+        return redirect(url_for("admin.names"))
 
     data = load_json_data(Config.DATA_FILES["names"])
-    names = data.get("names", [])
-    return render_template("names.html", names=names)
+    return render_template("names.html", names=data.get("names", []))
 
 
 @admin_bp.route("/static/<path:filename>")

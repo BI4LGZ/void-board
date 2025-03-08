@@ -121,6 +121,10 @@ body {
   color: #333;
 }
 
+a.button {
+  text-decoration: none;
+}
+
 .button.small {
   padding: 0.3rem 0.8rem;
   font-size: 0.9rem;
@@ -150,4 +154,11 @@ textarea.form-input {
 .action-input input[type="text"] {
   font-family: monospace;
   min-width: 300px;
+}
+
+input:focus,
+select:focus,
+button:focus {
+  outline: none;
+  box-shadow: none;
 }

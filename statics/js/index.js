@@ -6,19 +6,31 @@ let countdownEnded = false;
 const audioElement = new Audio("/statics/assets/ring.wav");
 let touchStartY = 0;
 let touchMoveY = 0;
+let lastHiddenTime = 0;
+let accumulatedTime = 0;
+let startTime = 0;
+let expectedEndTime = 0;
+let allowSound = true;
+let soundStarted = false;
+
+audioElement.preload = "auto";
 
 document.addEventListener("touchstart", function (e) {
   touchStartY = e.touches[0].clientY;
 });
 
-document.addEventListener("touchmove", function (e) {
-  touchMoveY = e.touches[0].clientY;
-  const deltaY = touchMoveY - touchStartY;
+document.addEventListener(
+  "touchmove",
+  function (e) {
+    touchMoveY = e.touches[0].clientY;
+    const deltaY = touchMoveY - touchStartY;
 
-  window.scrollBy(0, -deltaY);
+    window.scrollBy(0, -deltaY);
 
-  e.preventDefault();
-});
+    e.preventDefault();
+  },
+  { passive: false }
+);
 
 function updateSystemTime() {
   const now = new Date();
@@ -117,7 +129,6 @@ async function loadButtons() {
 async function initializeApp() {
   try {
     await Promise.all([loadTimetable(), loadButtons()]);
-    loadTimerData();
   } catch (error) {
     throw error;
   }
@@ -147,27 +158,6 @@ function searchBing() {
   }
 }
 
-function saveTimerData() {
-  const timerData = { minutes, seconds, timerRunning, countdownEnded };
-  sessionStorage.setItem("timerData", JSON.stringify(timerData));
-}
-
-function loadTimerData() {
-  const storedData = sessionStorage.getItem("timerData");
-  if (storedData) {
-    const parsedData = JSON.parse(storedData);
-    minutes = parsedData.minutes;
-    seconds = parsedData.seconds;
-    timerRunning = parsedData.timerRunning;
-    countdownEnded = parsedData.countdownEnded;
-
-    updateTimerDisplay();
-    if (timerRunning && !(minutes === 0 && seconds === 0 && countdownEnded)) {
-      startTimer();
-    }
-  }
-}
-
 function updateTimerDisplay() {
   const formattedMinutes = String(minutes).padStart(2, "0");
   const formattedSeconds = String(seconds).padStart(2, "0");
@@ -189,12 +179,10 @@ function updateTimerDisplay() {
 function setQuickTime(min, sec = 0) {
   minutes = min;
   seconds = sec;
+  expectedEndTime = 0;
   countdownEnded = false;
   updateTimerDisplay();
-  saveTimerData();
-  if (timerRunning) {
-    pauseTimer();
-  }
+  document.getElementById("startPauseButton").textContent = "开始";
 }
 
 function decreaseMinute() {
@@ -228,42 +216,42 @@ function increaseSecond() {
 
 function startTimer() {
   if (!timerRunning) {
+    allowSound = true;
+    soundStarted = false;
+    enableTimeControls(false);
+
+    const totalSeconds = minutes * 60 + seconds;
+    startTime = Date.now();
+    expectedEndTime = startTime + totalSeconds * 1000;
+
     timer = setInterval(() => {
-      const currentTotal = minutes * 60 + seconds;
+      const remaining = Math.ceil((expectedEndTime - Date.now()) / 1000);
 
-      if (currentTotal === 4) {
-        audioElement.play();
+      if (remaining <= 0) {
+        countdownEnded = true;
+        stopTimer();
+        return;
       }
 
-      if (seconds > 0) {
-        seconds--;
-      } else {
-        if (minutes > 0) {
-          minutes--;
-          seconds = 59;
-        } else {
-          clearInterval(timer);
-          timerRunning = false;
-          countdownEnded = true;
-          document.getElementById("startPauseButton").textContent = "开始";
-        }
-      }
-      saveTimerData();
+      minutes = Math.floor(remaining / 60);
+      seconds = remaining % 60;
       updateTimerDisplay();
-    }, 1000);
+
+      if (remaining === 3 && !soundStarted) {
+        audioElement.play();
+        soundStarted = true;
+      }
+    }, 250);
+
     timerRunning = true;
-    countdownEnded = false;
     document.getElementById("startPauseButton").textContent = "暂停";
-  } else {
-    pauseTimer();
   }
 }
 
 function pauseTimer() {
-  if (minutes * 60 + seconds <= 4) return;
   clearInterval(timer);
   timerRunning = false;
-  saveTimerData();
+  enableTimeControls(false);
   document.getElementById("startPauseButton").textContent = "开始";
 }
 
@@ -271,21 +259,50 @@ function stopTimer() {
   clearInterval(timer);
   minutes = 0;
   seconds = 0;
-  updateTimerDisplay();
   timerRunning = false;
-  countdownEnded = false;
-  saveTimerData();
-  sessionStorage.removeItem("timerData");
+  updateTimerDisplay();
   document.getElementById("startPauseButton").textContent = "开始";
+
+  if (countdownEnded && allowSound) {
+    audioElement.play();
+    allowSound = false;
+  }
+
+  countdownEnded = false;
+  enableTimeControls(true);
+}
+
+function enableTimeControls(enabled) {
+  const controls = [
+    "#increaseMinute",
+    "#decreaseMinute",
+    "#increaseSecond",
+    "#decreaseSecond",
+    ".quick-time",
+  ];
+
+  controls.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((button) => {
+      button.disabled = !enabled;
+      button.style.opacity = enabled ? 1 : 0.5;
+    });
+  });
 }
 
 function toggleStartPause() {
   const totalSeconds = minutes * 60 + seconds;
-  if (totalSeconds <= 4) return;
+  if (totalSeconds <= 0) {
+    stopTimer();
+    return;
+  }
 
   if (timerRunning) {
+    const remaining = minutes * 60 + seconds;
+    if (remaining <= 5) {
+      return;
+    }
     pauseTimer();
-  } else {
+  } else if (!timerRunning && totalSeconds >= 5) {
     startTimer();
   }
 }

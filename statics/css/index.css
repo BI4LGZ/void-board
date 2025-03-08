@@ -11,6 +11,13 @@ body {
   overflow: hidden;
 }
 
+audio {
+  position: absolute;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+}
+
 .container {
   width: 100%;
   display: flex;
@@ -73,6 +80,11 @@ td:nth-child(1) {
 
 .button:hover {
   background-color: #555;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  background-color: #aaa !important;
 }
 
 .button-container {
@@ -169,6 +181,10 @@ td:nth-child(1) {
 
 .quick-time:hover {
   background-color: #666;
+}
+
+.quick-time:disabled:hover {
+  background-color: #aaa !important;
 }
 
 .timer-controls {

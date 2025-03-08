@@ -23,7 +23,7 @@
             <td>
               <input
                 type="text"
-                name="table_names[]"
+                name="table_names[{{ loop.index0 }}]"
                 value="{{ name }}"
                 class="form-input"
                 required
@@ -33,7 +33,7 @@
               <button
                 type="button"
                 class="button danger small"
-                onclick="deleteRow(this)"
+                onclick="softDeleteRow(this, {{ loop.index0 }})"
               >
                 删除
               </button>
@@ -50,42 +50,57 @@
 </div>
 
 <script>
-    let rowCount = {{ names|length }};
+  let originalCount = {{ names|length }};
+  let deletedIndexes = new Set();
 
-    function addRow() {
-        rowCount++;
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td>${rowCount}</td>
-            <td>
-                <input type="text" name="table_names[]" class="form-input" required>
-            </td>
-            <td>
-                <button type="button" class="button danger small"
-                        onclick="deleteRow(this)">删除</button>
-            </td>
-        `;
-        document.querySelector('#nameTable tbody').appendChild(newRow);
-    }
+  function addRow() {
+      const newIndex = originalCount++;
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+          <td>${document.querySelectorAll('#nameTable tbody tr').length + 1}</td>
+          <td>
+              <input type="text"
+                     name="table_names[${newIndex}]"
+                     class="form-input"
+                     required>
+          </td>
+          <td>
+              <button type="button"
+                      class="button danger small"
+                      onclick="softDeleteRow(this, ${newIndex})">
+                  删除
+              </button>
+          </td>
+      `;
+      document.querySelector('#nameTable tbody').appendChild(newRow);
+  }
 
-    function deleteRow(button) {
-        const row = button.closest('tr');
-        row.remove();
+  function softDeleteRow(button, index) {
+      const row = button.closest('tr');
+      row.style.display = 'none';
+      deletedIndexes.add(index);
 
-        Array.from(document.querySelectorAll('#nameTable tbody tr td:first-child'))
-             .forEach((td, index) => td.textContent = index + 1);
-        rowCount--;
-    }
+      const hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.name = 'deleted_indexes';
+      hiddenInput.value = index;
+      row.appendChild(hiddenInput);
 
-      document.querySelector('form').addEventListener('submit', function(e) {
-          const emptyInputs = Array.from(document.querySelectorAll('input[name="table_names[]"]'))
-                              .filter(input => !input.value.trim());
+      Array.from(document.querySelectorAll('#nameTable tbody tr:not([style*="display: none"]) td:first-child'))
+           .forEach((td, idx) => td.textContent = idx + 1);
+  }
 
-          if(emptyInputs.length > 0) {
-              e.preventDefault();
-              alert('请填写所有学生姓名');
-              emptyInputs[0].focus();
-          }
+  document.querySelector('form').addEventListener('submit', function(e) {
+      const inputs = Array.from(document.querySelectorAll('input[name^="table_names["]'));
+      const emptyInputs = inputs.filter(input => {
+          return input.value.trim() === '' && !deletedIndexes.has(parseInt(input.name.match(/\[(\d+)\]/)[1]))
+      });
+
+      if(emptyInputs.length > 0) {
+          e.preventDefault();
+          alert('请填写所有学生姓名');
+          emptyInputs[0].focus();
+      }
   });
 </script>
 {% endblock %}
