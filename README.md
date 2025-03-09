@@ -1,77 +1,138 @@
 # 🎨 虚空白板 | Void Board
 
-> 多功能教学辅助工具&现代化班级屏幕主页 | 课程表 · 电子画板 · 随机点名 · 计时器
+![License](https://img.shields.io/badge/License-MIT-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.8%2B-green)
+![Flask](https://img.shields.io/badge/Flask-2.0%2B-orange)
 
-## 🌟 功能特性
+> 现代化教学辅助工具套件｜智能课表 × 电子画板 × 课堂工具｜专为教育场景设计的全功能解决方案
 
-- 📅 **课程表** - JSON 数据驱动动态课表展示
-- 🎨 **电子画板** - 高触屏支持的电子画板
-- 🎲 **随机点名** - 公平公正的课堂提问工具
-- ⏱️ **计时器** - 便捷准确的倒计时工具
-- 🔍 **快捷搜索** - 集成 Bing 搜索引擎快速入口
-- 💻 **管理面板** - 简单易用的管理界面
+---
 
-## 📂 项目结构
+## 🌟 全新功能矩阵
+
+### 🖥️ 核心功能
+
+| 模块        | 特性描述                             |
+| ----------- | ------------------------------------ |
+| 📅 智能课表 | 动态响应式课表，自动高亮当日课程     |
+| 🎨 电子画板 | 多指触控支持，三色切换，自动画布适配 |
+| 🎲 随机点名 | 公平轮询算法，名单自动洗牌           |
+| ⏱️ 计时器   | 支持快捷时间预设                     |
+
+### 🛠️ 管理后台
+
+| 功能        | 描述                           |
+| ----------- | ------------------------------ |
+| 📝 数据管理 | 可视化编辑课程表/名单/按钮配置 |
+| ⚙️ 实时生效 | 配置修改无需重启服务           |
+
+---
+
+## 🏗️ 项目架构
 
 ```bash
+├── admin/
+│   ├── templates/
+│   ├── static/
+│   ├── admin_app.py
+│   ├── config.py
+│   └── requirements.txt
 ├── statics/
-│   ├── data/              # 个性化数据存储
-│   │   ├── timetable.json    # 课程表数据
-│   │   ├── buttons.json      # 快捷按钮配置
-│   │   └── names.json        # 学生名单数据库
-│   ├── css/               # 样式表集合
-│   ├── js/                # 交互逻辑代码
-│   └── assets/            # 多媒体资源
-├── index.html             # 首页
-├── draw.html              # 画板
-└── name.html              # 随机点名
+│   ├── data/
+│   ├── css/
+│   ├── js/
+│   └── assets/
+├── index.html
+├── draw.html
+├── name.html
+├── README.MD
+├── .gitignore
+└── LICENCE
 ```
 
-## 🛠️ 个性化配置
-
-### 1. 课程表定制
-
-编辑 `statics/data/timetable.json`。
-
-项目文件中给出了一个示例课程表，你可以仿照其格式修改，并增减行列，页面会动态调整显示。
-
-❗：注意，过多或过少的行列数均可能导致页面显示异常。
-
-### 2. 快捷按钮设置
-
-修改 `statics/data/buttons.json`。
-
-项目文件中给出了一个示例快捷按钮设置，包含了所有项目自带功能，你可以仿照其格式添加快捷链接，或删除不需要的功能。
-
-### 3. 学生名单管理
-
-更新 `statics/data/names.json`。
-
-项目文件中给出了一个示例名单设置，你可以仿照其格式修改增减名单，将你的学生名单录入其中。
+---
 
 ## 🚀 部署指南
 
-### 环境要求
-
-- **推荐系统**: Ubuntu 22.04 LTS
-- **Web 服务器**: Nginx 1.18+
-
-### 分步部署
-
-1. **安装依赖**
+### 0️⃣ 前期准备
 
 ```bash
-sudo apt update && sudo apt install nginx -y
+# 安装系统依赖（Ubuntu/Debian）
+sudo apt update && sudo apt install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    git \
+    nginx
 ```
 
-2. **项目克隆**
+### 1️⃣ 克隆代码仓库
 
 ```bash
 git clone https://github.com/BI4LGZ/void-board.git
 cd void-board
 ```
 
-3. **Nginx 配置** ：你需要将`静态文件位置`修改为你的项目目录；将`IP或域名`修改为你的网站将会使用的 IP 或域名；将`端口号`修改为你的网站将会使用的端口号。
+### 2️⃣ 配置管理后台
+
+```bash
+# 进入管理后台目录
+cd admin
+
+# 创建虚拟环境
+python3 -m venv venv
+
+# 激活虚拟环境
+source venv/bin/activate
+
+# 安装Python依赖
+python3 -m pip install -r requirements.txt
+
+# 修改管理员凭证（重要！）
+vi config.py
+
+# 配置静态文件目录
+vi admin_app.py
+```
+
+```python
+# 修改以下关键配置项
+SECRET_KEY = os.getenv(
+    "SECRET_KEY", "your-secret-key-here"
+)  # 更换随机的长密钥
+ADMIN_USERNAME = os.getenv(
+    "ADMIN_USERNAME", "admin"
+)  # 更换用户名
+ADMIN_PASSWORD = os.getenv(
+    "ADMIN_PASSWORD", "admin123"
+)  # 更换强密码
+```
+
+```python
+app.wsgi_app = WhiteNoise(app.wsgi_app, root="YOUR_STATIC_DIR")  # 替换为静态文件目录
+```
+
+### 3️⃣ 运行后端
+
+```bash
+cd admin
+```
+
+```bash
+# 以开发模式运行
+run.sh dev
+```
+
+```bash
+# 以生产模式运行
+run.sh prod
+```
+
+### 4️⃣ 配置前端（Nginx 反向代理）
+
+```bash
+sudo vi /etc/nginx/nginx.conf
+```
 
 ```nginx
 server {
@@ -103,26 +164,47 @@ server {
 }
 ```
 
-4. **权限设置**：将你的`nginx`配置文件顶部的用户名赋予权限
-   比如你的用户是 www-data，像是这样：
-
-```nginx
-user www-data;
-```
-
-你可以将它改为一个拥有访问项目目录权限的用户，或像下面这样赋予权限：
-
 ```bash
-sudo chown -R www-data:www-data 项目目录
-sudo systemctl restart nginx
+# 测试配置并重启nginx服务
+sudo nginx -t && sudo systemctl restart nginx
 ```
 
-## 📜 许可协议
+---
 
-本项目采用 [MIT License](LICENSE) 开源协议
+> 💡 提示：首次部署完成后，请立即通过`config.py`中相应字段修改凭证和`secret_key`。
+
+---
+
+## 🔐 管理后台使用
+
+### 首次访问
+
+1. 通过 `http(s)://your-domain-or-ip:5001` 访问后台
+2. 使用默认凭证(或你修改后的凭证)登录：
+   - 用户名: `admin`
+   - 密码: `admin123`
+3. **立即修改默认密码！**
+
+### 功能导航
+
+| 模块       | 功能点                     |
+| ---------- | -------------------------- |
+| 课程表管理 | 动态行列编辑               |
+| 按钮配置   | 自定义动作/打开方式/样式类 |
+| 学生名单   | 批量导入/软删除/序列化存储 |
+
+---
+
+## 📜 开源协议
+
+本项目采用 [MIT License](LICENSE) 授权，欢迎贡献代码！
 
 ---
 
 <div align="center">
-  <sub>Created by BI4LGZ | 2025</sub>
+  <sub>🛠️ 由<a href="https://github.com/BI4LGZ">BI4LGZ</a>构建 | 📆 更新于2025</sub>
 </div>
+
+---
+
+> 📬 遇到问题？[提交 Issue](https://github.com/BI4LGZ/void-board/issues) | 💻 想贡献代码？欢迎 PR！

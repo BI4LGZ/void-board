@@ -6,7 +6,9 @@ STATIC_DATA_DIR = BASE_DIR / "statics/data"
 
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here") # Replace with your secret key
+    SECRET_KEY = os.getenv(
+        "SECRET_KEY", "your-secret-key-here"
+    )  # Replace with your secret key
     ADMIN_USERNAME = os.getenv(
         "ADMIN_USERNAME", "admin"
     )  # Replace with your admin username
@@ -18,9 +20,3 @@ class Config:
         "buttons": STATIC_DATA_DIR / "buttons.json",
         "names": STATIC_DATA_DIR / "names.json",
     }
-
-
-# class ProductionConfig(Config):
-#     SESSION_COOKIE_SECURE = True
-#     REMEMBER_COOKIE_HTTPONLY = True
-#     SESSION_COOKIE_SAMESITE = "Lax"

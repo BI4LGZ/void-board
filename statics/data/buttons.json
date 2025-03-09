@@ -2,18 +2,21 @@
   "buttons": [
     {
       "text": "随机点名",
-      "href": "/name/",
-      "class": "button"
+      "class": "button",
+      "target": null,
+      "href": "/name/"
     },
     {
       "text": "画板",
-      "href": "/draw/",
-      "class": "button"
+      "class": "button",
+      "target": null,
+      "href": "/draw/"
     },
     {
       "text": "计时器",
-      "onclick": "scrollToBottom()",
-      "class": "button"
+      "class": "button",
+      "target": null,
+      "onclick": "scrollToBottom()"
     }
   ]
 }
